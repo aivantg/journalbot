@@ -28,7 +28,10 @@ entries = []
 messages = app.client.conversations_history(channel=journal_channel, oldest=state['oldest'])['messages']
 for message in messages: 
     entry = "**" + (time.strftime("%I:%m %p", time.localtime(float(message['ts']))) + "**" + sep)
-    entry += message['text']
+    m = message['text']
+    m = m.replace('<', '&lt;').replace('>', '&gt;')
+    m = m.replace('\n', sep)
+    entry += m
     entries.append(entry)
     state['oldest'] = max(float(message['ts']), state['oldest'])
 
@@ -40,7 +43,7 @@ journal_string = f"{len(entries)} DM{'s' if len(entries) > 1 else ''} today:" + 
 
 if entries:
     print("Journal String:\n")
-    print(journal_string)
+    print(journal_string.replace('<br/>', '\n'))
     r.post('https://maker.ifttt.com/trigger/slack_day_one_sync/with/key/13Z80uk8mT-kN-RWMAOPl', data={"value1": journal_string, "value2": time.strftime("%m/%d", time.localtime())})
     print("Journal entry made!")
 else: 
